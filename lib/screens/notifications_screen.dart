@@ -17,24 +17,34 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   final List<NotificationItem> _notifications = [
     NotificationItem(
       id: 1,
-      sender: 'ADMIN',
+      sender: 'ADMIN TIMDIS',
       message:
-          'Laporan Anda tentang "Plagiarisme Tugas Akhir" telah disetujui dan sedang diproses lebih lanjut oleh tim verifikasi. Anda akan mendapat update dalam 2x24 jam.',
+          'Terima kasih atas laporannya. Kami telah melakukan verifikasi dan akan segera menindaklanjuti. Pelanggaran ini termasuk kategori sedang dan akan diberikan surat peringatan.',
       timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
-      type: NotificationType.approved,
+      type: NotificationType.adminReply,
       isRead: false,
+      reportTitle: 'Plagiarisme Tugas Akhir',
     ),
     NotificationItem(
       id: 2,
-      sender: 'DEA FAKULTAS',
+      sender: 'ADMIN',
       message:
-          'Laporan kecurangan ujian yang Anda laporkan telah diverifikasi. Kami akan segera melakukan investigasi lebih lanjut dan menghubungi pihak terkait.',
+          'Laporan Anda tentang "Kecurangan Ujian" telah disetujui dan sedang diproses lebih lanjut oleh tim verifikasi. Anda akan mendapat update dalam 2x24 jam.',
       timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
       type: NotificationType.approved,
       isRead: false,
     ),
     NotificationItem(
       id: 3,
+      sender: 'DEA FAKULTAS',
+      message:
+          'Laporan kecurangan ujian yang Anda laporkan telah diverifikasi. Kami akan segera melakukan investigasi lebih lanjut dan menghubungi pihak terkait.',
+      timestamp: DateTime.now().subtract(const Duration(minutes: 10)),
+      type: NotificationType.approved,
+      isRead: false,
+    ),
+    NotificationItem(
+      id: 4,
       sender: 'ADMIN SISTEM',
       message:
           'Laporan Anda dengan nomor #LP2024001 sedang menunggu verifikasi dari Dosen Pembimbing Akademik. Mohon bersabar, proses verifikasi memakan waktu 1-3 hari kerja.',
@@ -43,7 +53,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       isRead: false,
     ),
     NotificationItem(
-      id: 4,
+      id: 5,
       sender: 'TIM VERIFIKASI',
       message:
           'Laporan "Titip Absen di Kelas" sedang dalam tahap investigasi mendalam. Tim kami telah mengumpulkan bukti dan akan melakukan wawancara dengan saksi dalam waktu dekat.',
@@ -53,7 +63,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       isRead: true,
     ),
     NotificationItem(
-      id: 5,
+      id: 6,
       sender: 'ADMIN',
       message:
           'Laporan Anda ditolak karena kurangnya bukti pendukung yang valid. Silakan melengkapi dokumen pendukung seperti foto, video, atau saksi yang dapat memverifikasi kejadian tersebut.',
@@ -62,7 +72,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       isRead: true,
     ),
     NotificationItem(
-      id: 6,
+      id: 7,
       sender: 'SISTEM',
       message:
           'Sistem Academic Report akan menjalani maintenance terjadwal pada hari Minggu, 28 Januari 2025 pukul 00.00-02.00 WIB. Mohon maaf atas ketidaknyamanannya.',
@@ -236,6 +246,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     Color bgColor;
 
     switch (notification.type) {
+      case NotificationType.adminReply:
+        iconColor = const Color(0xFF1453A3);
+        iconData = Icons.admin_panel_settings;
+        bgColor = const Color(0xFF1453A3);
+        break;
       case NotificationType.approved:
         iconColor = const Color(0xFF66BB6A);
         iconData = Icons.check_circle;
@@ -390,6 +405,42 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           ],
                         ),
                         const SizedBox(height: 6),
+                        // Tampilkan judul laporan jika ada (untuk balasan admin)
+                        if (notification.reportTitle != null) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1453A3).withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: const Color(0xFF1453A3).withOpacity(0.2),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.assignment,
+                                    size: 12, color: Color(0xFF1453A3)),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    'Re: ${notification.reportTitle}',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF1453A3),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
                         Text(
                           notification.message,
                           style: TextStyle(
@@ -432,6 +483,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     Color bgColor;
 
     switch (notification.type) {
+      case NotificationType.adminReply:
+        iconColor = const Color(0xFF1453A3);
+        iconData = Icons.admin_panel_settings;
+        bgColor = const Color(0xFF1453A3);
+        break;
       case NotificationType.approved:
         iconColor = const Color(0xFF66BB6A);
         iconData = Icons.check_circle;
@@ -663,6 +719,7 @@ class NotificationItem {
   final DateTime timestamp;
   final NotificationType type;
   bool isRead;
+  final String? reportTitle; // Judul laporan untuk balasan admin
 
   NotificationItem({
     required this.id,
@@ -671,11 +728,13 @@ class NotificationItem {
     required this.timestamp,
     required this.type,
     this.isRead = false,
+    this.reportTitle,
   });
 }
 
 // Enum untuk tipe notifikasi
 enum NotificationType {
+  adminReply, // Balasan dari admin
   approved,
   pending,
   processing,
