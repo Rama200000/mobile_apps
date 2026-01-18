@@ -6,6 +6,9 @@ class ReportModel {
   final String status;
   final String date;
   final int imageCount;
+  final String? adminResponse;
+  final String? responseDate;
+  final String? adminName;
 
   ReportModel({
     required this.id,
@@ -15,6 +18,9 @@ class ReportModel {
     required this.status,
     required this.date,
     required this.imageCount,
+    this.adminResponse,
+    this.responseDate,
+    this.adminName,
   });
 
   // 🔥 DARI API LARAVEL
@@ -31,6 +37,9 @@ class ReportModel {
       imageCount: json['media'] != null
           ? (json['media'] as List).length
           : 0,
+      adminResponse: json['admin_response'],
+      responseDate: json['response_date'],
+      adminName: json['admin_name'] ?? 'Admin',
     );
   }
 
