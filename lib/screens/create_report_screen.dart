@@ -24,6 +24,7 @@ class CreateReportScreen extends StatefulWidget {
 }
 
 class _CreateReportScreenState extends State<CreateReportScreen> {
+  final TextEditingController _judulController = TextEditingController();
   final TextEditingController _deskripsiController = TextEditingController();
   final TextEditingController _customCategoryController =
       TextEditingController();
@@ -461,10 +462,20 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
 
   void _submitReport() async {
     // Validasi
+    if (_judulController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Judul laporan harus diisi!'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     if (_selectedCategory.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Judul laporan harus dipilih!'),
+          content: Text('Kategori laporan harus dipilih!'),
           backgroundColor: Colors.red,
         ),
       );
@@ -874,8 +885,32 @@ Navigator.pushReplacement(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Judul (Kategori)
+                      // Judul
                       const Text('Judul',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _judulController,
+                        decoration: InputDecoration(
+                          hintText: 'Masukkan judul laporan',
+                          hintStyle: TextStyle(color: Colors.grey[400]),
+                          filled: true,
+                          fillColor: const Color(0xFFF5F5F5),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.all(16),
+                          prefixIcon: const Icon(Icons.title,
+                              color: Color(0xFF1453A3)),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Kategori
+                      const Text('Kategori',
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 8),
@@ -1444,6 +1479,7 @@ Navigator.pushReplacement(
 
   @override
   void dispose() {
+    _judulController.dispose();
     _deskripsiController.dispose();
     _customCategoryController.dispose();
     _lokasiController.dispose();
