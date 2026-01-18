@@ -15,7 +15,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
-  late TextEditingController _nimController;
+  late TextEditingController _npmController;
   late TextEditingController _jurusanController;
 
   @override
@@ -24,7 +24,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameController = TextEditingController(text: widget.user.name);
     _emailController = TextEditingController(text: widget.user.email);
     _phoneController = TextEditingController(text: widget.user.phone);
-    _nimController = TextEditingController(text: widget.user.nim);
+    _npmController = TextEditingController(text: widget.user.nim);
     _jurusanController = TextEditingController(text: widget.user.jurusan);
   }
 
@@ -33,7 +33,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
-    _nimController.dispose();
+    _npmController.dispose();
     _jurusanController.dispose();
     super.dispose();
   }
@@ -49,31 +49,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return;
     }
 
-    // Simpan ke SharedPreferences
+    // Simpan ke SharedPreferences dengan key yang konsisten
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('userName', _nameController.text);
-    await prefs.setString('userEmail', _emailController.text);
+    // Simpan data yang bisa diubah manual (phone, npm, jurusan)
+    // Nama dan email tidak disimpan karena otomatis dari login
     await prefs.setString('userPhone', _phoneController.text);
-    await prefs.setString('userNim', _nimController.text);
+    await prefs.setString('userNpm', _npmController.text);
+    await prefs.setString(
+        'userNim', _npmController.text); // Backward compatibility
     await prefs.setString('userJurusan', _jurusanController.text);
 
-    // Update user data
-    final updatedUser = UserModel(
-      name: _nameController.text,
-      email: _emailController.text,
-      phone: _phoneController.text,
-      nim: _nimController.text,
-      jurusan: _jurusanController.text,
-      photoUrl: widget.user.photoUrl,
-    );
-
-    Navigator.pop(context, updatedUser);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Profil berhasil diperbarui'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    // Kembali dengan flag success
+    if (mounted) {
+      Navigator.pop(context, true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profil berhasil diperbarui'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
   }
 
   @override
@@ -101,6 +96,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               controller: _nameController,
               label: 'Nama Lengkap',
               icon: Icons.person_outline,
+              enabled: false, // Nama otomatis dari login
             ),
             const SizedBox(height: 16),
             _buildTextField(
@@ -108,6 +104,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               label: 'Email',
               icon: Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
+              enabled: false, // Email otomatis dari login
             ),
             const SizedBox(height: 16),
             _buildTextField(
@@ -115,19 +112,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               label: 'Nomor Telepon',
               icon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
+              hintText: 'Masukkan nomor telepon',
             ),
             const SizedBox(height: 16),
             _buildTextField(
-              controller: _nimController,
-              label: 'NIM',
+              controller: _npmController,
+              label: 'NPM',
               icon: Icons.badge_outlined,
-              enabled: false, // NIM tidak bisa diubah
+              keyboardType: TextInputType.number,
+              hintText: 'Masukkan NPM',
             ),
             const SizedBox(height: 16),
             _buildTextField(
               controller: _jurusanController,
               label: 'Jurusan',
               icon: Icons.school_outlined,
+              hintText: 'Masukkan jurusan',
             ),
             const SizedBox(height: 40),
             SizedBox(
@@ -163,6 +163,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     required IconData icon,
     TextInputType? keyboardType,
     bool enabled = true,
+    String? hintText,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,6 +183,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           keyboardType: keyboardType,
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: const Color(0xFF1453A3)),
+            hintText: hintText,
+            hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
             filled: true,
             fillColor: enabled ? Colors.white : Colors.grey[200],
             border: OutlineInputBorder(

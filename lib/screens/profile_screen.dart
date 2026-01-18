@@ -36,14 +36,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Load data login
-    final userName = prefs.getString('userName') ?? 'Guest';
-    final userEmail = prefs.getString('userEmail') ?? '';
+    // Load data login - pakai key yang konsisten
+    final userName =
+        prefs.getString('user_name') ?? prefs.getString('userName') ?? 'Guest';
+    final userEmail =
+        prefs.getString('user_email') ?? prefs.getString('userEmail') ?? '';
     final userPhoto = prefs.getString('userPhoto') ?? '';
 
     // Load data profil tambahan (jika ada)
     final phone = prefs.getString('userPhone') ?? '';
-    final nim = prefs.getString('userNim') ?? '';
+    final nim = prefs.getString('userNpm') ?? prefs.getString('userNim') ?? '';
     final jurusan = prefs.getString('userJurusan') ?? '';
 
     setState(() {
@@ -296,10 +298,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     EditProfileScreen(user: user),
                               ),
                             );
-                            if (result != null && result is UserModel) {
-                              setState(() {
-                                user = result;
-                              });
+                            // Reload data setelah edit
+                            if (result != null) {
+                              await _loadUserData();
                             }
                           },
                         ),
@@ -369,7 +370,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    user.nim,
+                    user.nim.isNotEmpty ? user.nim : 'Belum diisi',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 16,
@@ -389,25 +390,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildInfoCard(
                       icon: Icons.email_outlined,
                       title: 'Email',
-                      value: user.email,
+                      value: user.email.isNotEmpty ? user.email : '-',
                     ),
                     const SizedBox(height: 12),
                     _buildInfoCard(
                       icon: Icons.phone_outlined,
                       title: 'Nomor Telepon',
-                      value: user.phone,
+                      value: user.phone.isNotEmpty ? user.phone : 'Belum diisi',
                     ),
                     const SizedBox(height: 12),
                     _buildInfoCard(
                       icon: Icons.school_outlined,
                       title: 'Jurusan',
-                      value: user.jurusan,
+                      value: user.jurusan.isNotEmpty
+                          ? user.jurusan
+                          : 'Belum diisi',
                     ),
                     const SizedBox(height: 12),
                     _buildInfoCard(
                       icon: Icons.badge_outlined,
-                      title: 'NIM',
-                      value: user.nim,
+                      title: 'NPM',
+                      value: user.nim.isNotEmpty ? user.nim : 'Belum diisi',
                     ),
 
                     const SizedBox(height: 30),
@@ -446,7 +449,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _showAboutDialog();
                       },
                     ),
-        
 
                     // Logout Button
                     SizedBox(

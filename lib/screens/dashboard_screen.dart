@@ -539,8 +539,9 @@ void _openCreateReport() async {
                           builder: (context) => const ProfileScreen(),
                         ),
                       );
-                      // Reload foto profil setelah kembali dari ProfileScreen
-                      _loadProfilePhoto();
+                      // Reload data profil dan foto setelah kembali dari ProfileScreen
+                      await _checkLoginStatus();
+                      await _loadProfilePhoto();
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -957,15 +958,15 @@ void _openCreateReport() async {
                               category: 'Kegiatan',
                               imageUrl: 'https://via.placeholder.com/150',
                             ),
+                            const SizedBox(height: 12),
+                            _buildNewsCard(
+                              title: 'Mahasiswa Polinela Juara Kompetisi Nasional',
+                              date: '20 Desember 2024',
+                              category: 'Prestasi',
+                              imageUrl: 'https://via.placeholder.com/150',
+                            ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildNewsCard(
-                        title: 'Mahasiswa Polinela Juara Kompetisi Nasional',
-                        date: '20 Desember 2024',
-                        category: 'Prestasi',
-                        imageUrl: 'https://via.placeholder.com/150',
                       ),
 
                       const SizedBox(height: 30),
@@ -1127,82 +1128,75 @@ void _openCreateReport() async {
     required String imageUrl,
   }) {
     return Container(
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          // Image
+          // Icon
           Container(
-            width: 100,
-            height: 100,
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
               color: Colors.grey[300],
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                bottomLeft: Radius.circular(16),
-              ),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                bottomLeft: Radius.circular(16),
-              ),
-              child: Icon(
-                Icons.newspaper,
-                size: 40,
-                color: Colors.grey[400],
-              ),
+            child: Icon(
+              Icons.newspaper,
+              size: 32,
+              color: Colors.grey[500],
             ),
           ),
+          const SizedBox(width: 16),
 
           // Content
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1453A3).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      category,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: Color(0xFF1453A3),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Category Badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1453A3).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(6),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    date,
+                  child: Text(
+                    category,
                     style: const TextStyle(
                       fontSize: 11,
-                      color: Colors.black54,
+                      color: Color(0xFF1453A3),
+                      fontWeight: FontWeight.w600,
                     ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Title
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                    height: 1.3,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+                // Date
+                Text(
+                  date,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
                   ),
                 ],
               ),
             ),
-          ),
         ],
       ),
     );
@@ -1374,24 +1368,45 @@ void _openCreateReport() async {
             ),
             child: SafeArea(
               child: GestureDetector(
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  Navigator.push(
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const ProfileScreen(),
                     ),
                   );
+                  // Reload data profil setelah kembali
+                  await _checkLoginStatus();
+                  await _loadProfilePhoto();
                 },
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // FIX: Foto Profil di Drawer - gunakan asset
-                    const CircleAvatar(
-                      radius: 40,
-                      backgroundImage: AssetImage('assets/profil.png'),
-                      backgroundColor: Colors.transparent,
-                    ),
+                    // Foto Profil di Drawer - dengan foto user atau default
+                    _userPhotoUrl != null && _userPhotoUrl!.isNotEmpty
+                        ? CircleAvatar(
+                            radius: 40,
+                            backgroundImage: _userPhotoUrl!.startsWith('http')
+                                ? NetworkImage(_userPhotoUrl!)
+                                : FileImage(File(_userPhotoUrl!))
+                                    as ImageProvider,
+                            backgroundColor: Colors.transparent,
+                          )
+                        : _profilePhotoPath != null &&
+                                _profilePhotoPath!.isNotEmpty
+                            ? CircleAvatar(
+                                radius: 40,
+                                backgroundImage:
+                                    FileImage(File(_profilePhotoPath!)),
+                                backgroundColor: Colors.transparent,
+                              )
+                            : const CircleAvatar(
+                                radius: 40,
+                                backgroundImage:
+                                    AssetImage('assets/profil.png'),
+                                backgroundColor: Colors.transparent,
+                              ),
                     const SizedBox(height: 16),
                     Text(
                       _userName,
@@ -1420,13 +1435,16 @@ void _openCreateReport() async {
                 ListTile(
                   leading: const Icon(Icons.person),
                   title: const Text('Profil Saya'),
-                  onTap: () {
+                  onTap: () async {
                     Navigator.pop(context);
-                    Navigator.push(
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) => const ProfileScreen()),
                     );
+                    // Reload data profil setelah kembali
+                    await _checkLoginStatus();
+                    await _loadProfilePhoto();
                   },
                 ),
                 ListTile(
