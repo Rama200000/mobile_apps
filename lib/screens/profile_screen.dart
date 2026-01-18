@@ -26,6 +26,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     jurusan: '',
   );
 
+  bool isLoggedIn = false; // Status login
+
   @override
   void initState() {
     super.initState();
@@ -35,6 +37,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // Memuat data user dari SharedPreferences
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
+
+    // Cek apakah user sudah login
+    final token = prefs.getString('auth_token');
+    final isUserLoggedIn = token != null && token.isNotEmpty;
 
     // Load data login - pakai key yang konsisten
     final userName =
@@ -49,6 +55,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final jurusan = prefs.getString('userJurusan') ?? '';
 
     setState(() {
+      isLoggedIn = isUserLoggedIn;
       user = UserModel(
         name: userName,
         email: userEmail,
@@ -121,6 +128,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       debugPrint('Error deleting profile photo: $e');
     }
+  }
+
+  void _handleLogin() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    );
   }
 
   void _showLogoutDialog() {
@@ -450,22 +464,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       },
                     ),
 
-                    // Logout Button
+                    // Login/Logout Button (conditional)
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: _showLogoutDialog,
-                        icon: const Icon(Icons.logout),
-                        label: const Text('Logout'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFE74C3C),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
+                      child: isLoggedIn
+                          ? ElevatedButton.icon(
+                              onPressed: _showLogoutDialog,
+                              icon: const Icon(Icons.logout),
+                              label: const Text('Logout'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFE74C3C),
+                                foregroundColor: Colors.white,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            )
+                          : ElevatedButton.icon(
+                              onPressed: _handleLogin,
+                              icon: const Icon(Icons.login),
+                              label: const Text('Login'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF1453A3),
+                                foregroundColor: Colors.white,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
                     ),
                   ],
                 ),

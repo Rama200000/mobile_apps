@@ -51,8 +51,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     // Simpan ke SharedPreferences dengan key yang konsisten
     final prefs = await SharedPreferences.getInstance();
-    // Simpan data yang bisa diubah manual (phone, npm, jurusan)
-    // Nama dan email tidak disimpan karena otomatis dari login
+    // Simpan data yang bisa diubah manual (nama, phone, npm, jurusan)
+    await prefs.setString('user_name', _nameController.text);
+    await prefs.setString('userName', _nameController.text);
     await prefs.setString('userPhone', _phoneController.text);
     await prefs.setString('userNpm', _npmController.text);
     await prefs.setString(
@@ -96,7 +97,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               controller: _nameController,
               label: 'Nama Lengkap',
               icon: Icons.person_outline,
-              enabled: false, // Nama otomatis dari login
+              hintText: 'Masukkan nama lengkap',
             ),
             const SizedBox(height: 16),
             _buildTextField(
